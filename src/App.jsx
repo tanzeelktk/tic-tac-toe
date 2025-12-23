@@ -1,0 +1,106 @@
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
+
+function App() {
+  const [board, setBoard] = useState(Array(9).fill(""))
+  const [turn, setTurn] = useState("X")
+  const [gameOver, setGameOver] = useState(false)
+  const [message, setMessage] = useState("")
+
+  function checkWin(board) {
+    const wins = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ]
+
+    return wins.some(([a, b, c]) => {
+      return (
+        board[a] !== "" &&
+        board[a] === board[b] &&
+        board[a] === board[c]
+      )
+    })
+  }
+
+  function resetGame() {
+    setBoard(Array(9).fill(""))
+    setTurn("X")
+    setMessage("")
+    setGameOver(false)
+  }
+
+  function handlClick(index) {
+    if (gameOver) return
+    const newBoard = [...board]
+    newBoard[index] = turn
+
+    const isWin = checkWin(newBoard)
+
+    if (isWin) {
+      setBoard(newBoard)
+      setGameOver(true)
+      setMessage(`${turn} is winner`)
+      return
+    }
+    if (!newBoard.includes("")) {
+      setBoard(newBoard)
+      setGameOver(true)
+      setMessage("Match draw")
+      return
+    }
+    setBoard(newBoard)
+
+    setTurn(turn === "X" ? "O" : "X")
+
+  }
+
+  return (
+    <>
+      <div className='min-h-screen bg-gray-500 flex flex-col items-center justify-center gap-4'>
+        <div className='bg-white p-6 rounded-xl shadow-lg'>
+          <h2 className="text-2xl font-bold text-center mb-4">
+            Tic Tac Toe
+          </h2>
+
+          <p className="text-center mb-4 text-lg">
+            {gameOver ? message : `Turn: ${turn}`}
+          </p>
+          <button onClick={resetGame} className='w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition'>Restart Game</button>
+        </div>
+        <div className='grid grid-cols-3 gap-3'>
+          {
+            board.map((value, index) => (<div
+              key={index}
+              onClick={() => !gameOver && value === "" && handlClick(index)}
+              className={`
+                    w-[120px] h-[120px]
+                    flex items-center justify-center
+                    text-5xl font-bold
+                    rounded-lg
+                    transition-all duration-200
+                    ${value === "X" ? "text-red-500" : value === "O" ? "text-blue-500" : ""}
+                    ${gameOver || value !== ""
+                  ? "bg-gray-200"
+                  : "bg-amber-50 hover:bg-amber-100 hover:scale-105 cursor-pointer"
+                }
+`}
+            >
+              {value}
+            </div>))
+          }
+        </div>
+      </div>
+
+    </>
+  )
+}
+
+export default App
