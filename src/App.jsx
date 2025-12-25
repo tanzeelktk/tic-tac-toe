@@ -1,13 +1,43 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import clickX from './assets/soundEffects/click1.mp3'
+import clickO from './assets/soundEffects/click2.mp3'
+import gameStart from './assets/soundEffects/gameStart.mp3'
+import gameOverSoundEffect from './assets/soundEffects/gameOver.mp3'
 
 function App() {
   const [board, setBoard] = useState(Array(9).fill(""))
   const [turn, setTurn] = useState("X")
   const [gameOver, setGameOver] = useState(false)
   const [message, setMessage] = useState("")
+
+  const clickXRef = useRef(null)
+  const clickORef = useRef(null)
+  const gameStartRef = useRef(null)
+  const gameOverRef = useRef(null)
+
+
+  function playClickSound(player) {
+    const audio = player === "X" ? clickXRef.current : clickORef.current
+    if (audio) {
+      audio.currentTime = 0
+      audio.play()
+    }
+  }
+
+  function gameStartSound() {
+    const audio = gameStartRef.current
+    audio.currentTime = 0
+    audio.play()
+  }
+
+  function gameOverSound() {
+    const audio = gameOverRef.current
+    audio.currentTime = 0
+    audio.play()
+  }
 
   function checkWin(board) {
     const wins = [
@@ -31,6 +61,7 @@ function App() {
   }
 
   function resetGame() {
+    gameStartSound()
     setBoard(Array(9).fill(""))
     setTurn("X")
     setMessage("")
@@ -38,13 +69,14 @@ function App() {
   }
 
   function handlClick(index) {
-    if (gameOver) return
+    if (gameOver || board[index] !== "") return
     const newBoard = [...board]
     newBoard[index] = turn
 
     const isWin = checkWin(newBoard)
 
     if (isWin) {
+      gameOverSound()
       setBoard(newBoard)
       setGameOver(true)
       setMessage(`${turn} is winner`)
@@ -64,6 +96,10 @@ function App() {
 
   return (
     <>
+      <audio ref={clickXRef} src={clickX} />
+      <audio ref={clickORef} src={clickO} />
+      <audio ref={gameStartRef} src={gameStart} />
+      <audio ref={gameOverRef} src={gameOverSoundEffect}/>
       <div className='min-h-screen bg-gray-500 flex flex-col items-center justify-center gap-4'>
         <div className='bg-white p-6 rounded-xl shadow-lg'>
           <h2 className="text-2xl font-bold text-center mb-4">
@@ -79,7 +115,12 @@ function App() {
           {
             board.map((value, index) => (<div
               key={index}
-              onClick={() => !gameOver && value === "" && handlClick(index)}
+              onClick={() => {
+                if (!gameOver && value === "") {
+                  playClickSound(turn)
+                  handlClick(index)
+                }
+              }}
               className={`
                     w-[120px] h-[120px]
                     flex items-center justify-center
